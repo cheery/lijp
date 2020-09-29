@@ -4,8 +4,6 @@ LIJP is a member of lisp programming languages
 designed to be a backend for a statically typed, lazy,
 pure functional programming language.
 
-## Motivation
-
 ## Language description
 
 Describing the abstract syntax for the language with Haskell:
