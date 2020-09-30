@@ -31,7 +31,7 @@ class PAP(obj.Object):
 # Var  = lambda index:        obj.Data(0, [obj.Integer(index)])
 # App  = lambda fn, arg:      obj.Data(1, [fn, arg])
 # Abs  = lambda body:         obj.Data(2, [body])
-# Let  = lambda bind, body:   obj.Data(3, [bind, body])
+# Let  = lambda binds, body:  obj.Data(3, [obj.from_list(binds), body])
 # Enum = lambda index, arity: obj.Data(4, [obj.Integer(index), obj.Integer(arity)])
 # Case = lambda arg, alts:    obj.Data(5, [arg, obj.from_list(alts)])
 
@@ -53,7 +53,11 @@ def activate(env, expr):
     elif data.tag == 2: # Abs
         return Prog(env, data)
     elif data.tag == 3: # Let
-        env = env + [activate(env, data.args[0])]
+        binds = obj.to_list(data.args[0])
+        bound_env = []
+        for bind in binds:
+            bound_env.append(activate(env, bind))
+        env = env + bound_env
         return activate(env, data.args[1])
     elif data.tag == 4: # Enum
         return evaluate(env, data, [])
@@ -94,7 +98,11 @@ def evaluate(env, expr, args):
             return PAP(Prog(env, data), args)
         return evaluate(env, data.args[0], args)
     elif data.tag == 3: # Let
-        env = env + [activate(env, data.args[0])]
+        binds = obj.to_list(data.args[0])
+        bound_env = []
+        for bind in binds:
+            bound_env.append(activate(env, bind))
+        env = env + bound_env
         return evaluate(env, data.args[1], args)
     elif data.tag == 4: # Enum
         index = obj.to_integer(data.args[0])

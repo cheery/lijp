@@ -4,7 +4,7 @@ import obj
 Var  = lambda index:        obj.Data(0, [obj.Integer(index)])
 App  = lambda fn, arg:      obj.Data(1, [fn, arg])
 Abs  = lambda body:         obj.Data(2, [body])
-Let  = lambda bind, body:   obj.Data(3, [bind, body])
+Let  = lambda binds, body:  obj.Data(3, [obj.from_list(binds), body])
 Enum = lambda index, arity: obj.Data(4, [obj.Integer(index), obj.Integer(arity)])
 Case = lambda arg, alts:    obj.Data(5, [arg, obj.from_list(alts)])
 
@@ -36,7 +36,12 @@ def flush(reader, char):
                 output(reader, arg)
                 repeat = False
             elif tag == 1:                                  # let
-                reader.output = Let(reader.output, arg)
+                binds = [reader.output]
+                while len(reader.aside) > 0 and reader.aside[len(reader.aside)-1][0] == 4:
+                    _, bind, _ = reader.aside.pop()
+                    binds.append(bind)
+                binds.reverse()
+                reader.output = Let(binds, arg)
             elif tag == 2:                                  # abs
                 output(reader, Abs(arg))
             elif tag == 3:                                  # case
@@ -44,6 +49,8 @@ def flush(reader, char):
                     raise ReadError(char)
                 reader.output = Case(reader.output, alts + [arg])
                 repeat = False
+            elif tag == 4:                                  # comma
+                raise ReadError(char)
             else:
                 raise ReadError(char)
 
@@ -62,6 +69,10 @@ def read_character(reader, char):
             reader.state = 0
         elif char == ")":
             flush(reader, char)
+            reader.state = 0
+        elif char == "," and reader.output is not None:
+            reader.aside.append((4, reader.output, []))
+            reader.output = None
             reader.state = 0
         elif char == ":" and reader.output is not None:
             reader.aside.append((1, reader.output, []))

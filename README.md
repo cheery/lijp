@@ -11,7 +11,7 @@ Describing the abstract syntax for the language with Haskell:
     data Term = Var Natural
               | App Term Term
               | Abs Term
-              | Let Term Term
+              | Let [Term] Term
               | Enum Natural Natural
               | Case Term [Term]
 
@@ -21,13 +21,17 @@ Syntax is simple enough:
  2. Parentheses are used as grouping element.
  3. Sequences of terms are interpreted as application
  4. Lambda abstraction is denoted by lambda symbol(`λ`).
- 5. Let expression is expressed with terms separated by colon(`:`).
+ 5. Let expression is expressed with terms separated by colon(`:`),
+    multiple binds happening in parallel are separated by comma(`,`).
  6. Data constructor is an index separated from arity with a slash(`/`).
     The index and arity are digit sequences.
  7. Case expression is a term followed by braces (`{}`),
     enclosing cases separated by semicolon (`;`)
  8. Hash (`#`) is used as a single-line comment.
  9. Whitespace is ignored unless it separates two terms.
+
+_2020-09-30 update:_ `Let Term Term` changed to `Let [Term] Term`.
+The parallel bind informs that the bound terms won't reference each other.
 
 ## Sample programs
 
@@ -54,8 +58,8 @@ The I -combinator:
 ### Boolean arithmetic
 
       (λλ1{ 0; 1/0 })  # or
-    : (λλ1{ 0/0; 0 })  # and
-    : (λ0{ 1/0; 0/0 }) # not
+    , (λλ1{ 0/0; 0 })  # and
+    , (λ0{ 1/0; 0/0 }) # not
     : 0 (0 (0 (0 (2 0/0 0/0)))) # not (not (not (not (or false false))))
 
 ## RPython runtime
